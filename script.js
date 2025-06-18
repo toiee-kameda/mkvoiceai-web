@@ -5,6 +5,7 @@ class TextToSpeechApp {
         this.initializeElements();
         this.bindEvents();
         this.loadSavedApiKey();
+        this.loadVoiceSettings();
         this.checkApiKeyStatus();
     }
 
@@ -36,12 +37,19 @@ class TextToSpeechApp {
         this.toggleApiKeyBtn.addEventListener('click', () => this.toggleApiKeyVisibility());
         this.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
         this.textInput.addEventListener('input', () => this.updateCharacterCount());
-        this.pitchRange.addEventListener('input', () => this.updatePitchValue());
-        this.speedRange.addEventListener('input', () => this.updateSpeedValue());
+        this.pitchRange.addEventListener('input', () => {
+            this.updatePitchValue();
+            this.saveVoiceSettings();
+        });
+        this.speedRange.addEventListener('input', () => {
+            this.updateSpeedValue();
+            this.saveVoiceSettings();
+        });
         this.previewBtn.addEventListener('click', () => this.generatePreview());
         this.generateBtn.addEventListener('click', () => this.generateSpeech());
         this.downloadBtn.addEventListener('click', () => this.downloadAudio());
         
+        this.voiceSelect.addEventListener('change', () => this.saveVoiceSettings());
         this.apiKeyInput.addEventListener('input', () => this.checkApiKeyStatus());
         this.textInput.addEventListener('input', () => this.checkGenerateButtonState());
     }
@@ -130,6 +138,43 @@ class TextToSpeechApp {
     checkApiKeyStatus() {
         const hasApiKey = this.apiKey || this.apiKeyInput.value.trim();
         this.checkGenerateButtonState();
+    }
+
+    saveVoiceSettings() {
+        const settings = {
+            voice: this.voiceSelect.value,
+            pitch: this.pitchRange.value,
+            speed: this.speedRange.value
+        };
+        
+        try {
+            localStorage.setItem('tts-voice-settings', JSON.stringify(settings));
+        } catch (error) {
+            console.error('Failed to save voice settings:', error);
+        }
+    }
+
+    loadVoiceSettings() {
+        try {
+            const savedSettings = localStorage.getItem('tts-voice-settings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                
+                if (settings.voice) {
+                    this.voiceSelect.value = settings.voice;
+                }
+                if (settings.pitch !== undefined) {
+                    this.pitchRange.value = settings.pitch;
+                    this.updatePitchValue();
+                }
+                if (settings.speed !== undefined) {
+                    this.speedRange.value = settings.speed;
+                    this.updateSpeedValue();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load voice settings:', error);
+        }
     }
 
     updateCharacterCount() {
@@ -443,8 +488,8 @@ class TextToSpeechApp {
             return;
         }
 
-        // 最初の30文字を取得
-        const previewText = fullText.substring(0, 30);
+        // 最初の60文字を取得
+        const previewText = fullText.substring(0, 60);
         
         this.previewBtn.disabled = true;
         this.showProgress('プレビュー音声を生成中...', 10);
