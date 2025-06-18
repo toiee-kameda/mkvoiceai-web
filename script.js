@@ -416,7 +416,7 @@ class TextToSpeechApp {
             
             const link = document.createElement('a');
             link.href = url;
-            link.download = `generated-speech-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.mp3`;
+            link.download = `audio-${Math.floor(Math.random() * 1000000)}.mp3`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
