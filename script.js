@@ -27,6 +27,9 @@ class TextToSpeechApp {
         this.downloadSection = document.getElementById('download-section');
         this.downloadBtn = document.getElementById('download-btn');
         this.errorMessage = document.getElementById('error-message');
+        this.previewBtn = document.getElementById('preview-btn');
+        this.previewSection = document.getElementById('preview-section');
+        this.previewAudio = document.getElementById('preview-audio');
     }
 
     bindEvents() {
@@ -35,6 +38,7 @@ class TextToSpeechApp {
         this.textInput.addEventListener('input', () => this.updateCharacterCount());
         this.pitchRange.addEventListener('input', () => this.updatePitchValue());
         this.speedRange.addEventListener('input', () => this.updateSpeedValue());
+        this.previewBtn.addEventListener('click', () => this.generatePreview());
         this.generateBtn.addEventListener('click', () => this.generateSpeech());
         this.downloadBtn.addEventListener('click', () => this.downloadAudio());
         
@@ -162,6 +166,7 @@ class TextToSpeechApp {
         const isValidLength = text.length <= 5000;
         
         this.generateBtn.disabled = !(hasApiKey && hasText && isValidLength);
+        this.previewBtn.disabled = !(hasApiKey && hasText);
     }
 
     showProgress(text = '処理中...', progress = 0) {
@@ -426,6 +431,49 @@ class TextToSpeechApp {
         } catch (error) {
             console.error('Download failed:', error);
             this.showError('ファイルのダウンロードに失敗しました');
+        }
+    }
+
+    async generatePreview() {
+        const apiKey = this.apiKey || this.apiKeyInput.value.trim();
+        const fullText = this.textInput.value.trim();
+        
+        if (!apiKey || !fullText) {
+            this.showError('APIキーとテキストを入力してください');
+            return;
+        }
+
+        // 最初の30文字を取得
+        const previewText = fullText.substring(0, 30);
+        
+        this.previewBtn.disabled = true;
+        this.showProgress('プレビュー音声を生成中...', 10);
+
+        try {
+            const audioData = await this.callTextToSpeechAPI(apiKey, previewText);
+            this.showProgress('プレビュー音声を準備中...', 90);
+            
+            // Base64データをBlobに変換
+            const audioBytes = atob(audioData);
+            const audioArray = new Uint8Array(audioBytes.length);
+            for (let i = 0; i < audioBytes.length; i++) {
+                audioArray[i] = audioBytes.charCodeAt(i);
+            }
+            
+            const blob = new Blob([audioArray], { type: 'audio/mp3' });
+            const url = URL.createObjectURL(blob);
+            
+            // audio要素にセット
+            this.previewAudio.src = url;
+            this.previewSection.style.display = 'block';
+            
+            this.hideProgress();
+            
+        } catch (error) {
+            console.error('Preview generation failed:', error);
+            this.showError(this.getErrorMessage(error));
+        } finally {
+            this.previewBtn.disabled = false;
         }
     }
 }

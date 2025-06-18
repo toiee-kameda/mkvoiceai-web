@@ -307,6 +307,40 @@ input[type="range"]::-moz-range-thumb {
     margin-top: 15px;
 }
 
+.button-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-preview {
+    background: #9b59b6;
+    color: white;
+}
+
+.btn-preview:hover:not(:disabled) {
+    background: #8e44ad;
+}
+
+.preview-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border: 1px solid #e1e8ed;
+}
+
+.preview-section p {
+    margin: 0 0 15px 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.preview-section audio {
+    width: 100%;
+    outline: none;
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 15px;
@@ -335,6 +369,10 @@ input[type="range"]::-moz-range-thumb {
     .btn {
         width: 100%;
         margin-bottom: 10px;
+    }
+    
+    .button-group {
+        flex-direction: column;
     }
     
     .toggle-btn {
