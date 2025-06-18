@@ -238,6 +238,39 @@ input[type="range"]::-moz-range-thumb {
     margin-top: 5px;
 }
 
+.api-help-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.help-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #3498db;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.help-link:hover {
+    background: #e3f2fd;
+    border-color: #3498db;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+.help-icon {
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
 .progress-container {
     margin: 20px 0;
 }

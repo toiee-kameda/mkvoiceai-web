@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Cloud Text-to-Speech APIキー取得ガイド</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        h3 {
+            color: #34495e;
+            font-size: 18px;
+            margin: 25px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .highlight {
+            background: #e8f4fd;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .highlight.tip {
+            background: #f0f9ff;
+            border-left-color: #3b82f6;
+        }
+
+        .highlight.warning {
+            background: #fef3cd;
+            border-left-color: #fbbf24;
+        }
+
+        .highlight.danger {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+        }
+
+        .highlight strong {
+            color: #2c3e50;
+        }
+
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: #e74c3c;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+
+        .faq {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .faq h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px 30px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header, .content {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Google Cloud Text-to-Speech</h1>
+            <p>APIキー取得ガイド（非エンジニア向け）</p>
+        </div>
+        
+        <div class="content">
+            <p>このガイドでは、Google Cloudの「Text-to-Speech」機能を使うために必要なAPIキーの取得方法を、初心者の方にも分かりやすく説明します。</p>
+
+            <h2>事前準備</h2>
+            <ul>
+                <li><strong>Googleアカウント</strong>：GmailやGoogle Driveで使っているアカウントで大丈夫です</li>
+                <li><strong>クレジットカード</strong>：無料枠がありますが、登録時に必要です（通常の使用では課金されません）</li>
+            </ul>
+
+            <div class="step">
+                <h2><span class="step-number">1</span>Google Cloudにアクセス</h2>
+                <div class="highlight tip">
+                    <strong>💡 補足1</strong>: Google Cloud Consoleは、Googleが提供するクラウドサービスの管理画面です。Gmail やGoogle Driveと同じGoogleのサービスの一つです。<br>
+                </div>
+                <div class="highlight tip">
+                    <strong>💡 補足2</strong>:初めて利用する際は、登録手続きが発生します。クレジットカード登録がありますが、フルアカウントにしない限り、自動で請求されることはありません。本人確認みたいなものです
+                </div>
+                <ol>
+                    <li><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> にアクセス</li>
+                    <li>お持ちのGoogleアカウントでログイン</li>
+                    <li>登録手続きを行う<br>
+                        <img src="images/1.png" alt="">
+                        <img src="images/2.png" alt="">
+                        <img src="images/4.png" alt="">
+                        <img src="images/5.png" alt="">
+                    </li>
+                </ol>
+
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">2</span>Text-to-Speech APIを有効化</h2>
+                <p>APIを使用するためには、まずそのサービスを「有効化」する必要があります。</p>
+                <ol>
+                    <li>検索ボックスに「Text-to-Speech」と入力
+                        <img src="images/6.png" alt="">
+                    </li>
+                    <li><strong>「Cloud Text-to-Speech API」</strong> をクリック</li>
+                    <li><strong>「有効にする」</strong> をクリック
+                    <img src="images/7.png" alt=""></li>
+                </ol>
+                <div class="highlight tip">
+                    <strong>💡 補足</strong>: APIとは「アプリケーション同士が会話するための仕組み」です。Text-to-Speech APIを有効にすることで、文字を音声に変換する機能が使えるようになります。
+                </div>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">4</span>認証情報（APIキー）を作成</h2>
+                <p>APIキーは、あなたがこのサービスを使う権限があることを証明する「鍵」のようなものです。</p>
+                <ol>
+                    <li>左側のメニューから <strong>「APIとサービス」</strong> → <strong>「認証情報」</strong> をクリック
+                        <img src="images/8.png" alt="">
+                        <img src="images/9.png" alt="">
+                    </li>
+                    <li>画面上部の <strong>「認証情報を作成」</strong> をクリック
+                        <img src="images/10.png" alt="" srcset="">
+                    </li>
+                    <li><strong>「APIキー」</strong> を選択</li>
+                    <li>APIキーが作成されます（後でコピーするので、この画面は開いたままにしておきます）
+                        <img src="images/11.png" alt="">
+                    </li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">5</span>APIキーを制限して安全性を高める</h2>
+                <p>作成したAPIキーは、そのままだとGoogle Cloudの全ての機能にアクセスできてしまいます。安全のため、Text-to-Speechのみに制限しましょう。</p>
+                <ol>
+                    <li>作成されたAPIキーの画面で <strong>「キーを制限」</strong> をクリック
+                        <img src="images/12.png" alt="">
+                    </li>
+                    <li><strong>「API の制限」</strong> セクションで：
+                        <ul>
+                            <li><strong>「キーを制限」</strong> を選択</li>
+                            <li><strong>「API を選択」</strong> をクリック
+                            <img src="images/13.png" alt=""></li>
+                            </li>
+                            <li><strong>「Cloud Text-to-Speech API」</strong> にチェックを入れる</li>
+                            <li><strong>「OK」</strong> をクリック</li>
+                        </ul>
+                    </li>
+                    <li>画面下部の <strong>「保存」</strong> をクリック</li>
+                </ol>
+                <div class="highlight warning">
+                    <strong>⚠️ 重要</strong>: この制限により、万が一APIキーが漏洩してもText-to-Speech以外の機能は使われません。
+                </div>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">6</span>APIキーをコピー</h2>
+                <ol>
+                    <li>認証情報の一覧画面で、作成したAPIキーの右側にある <strong>コピーアイコン</strong> をクリック
+                        <img src="images/14.png" alt="">
+                    </li>
+                    <li>APIキーがクリップボードにコピーされます</li>
+                </ol>
+                <div class="highlight danger">
+                    <strong>⚠️ 注意</strong>: APIキーは秘密情報です。他人に教えたり、ウェブサイトに投稿したりしないでください。
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h2>🎉 完了！</h2>
+                <p>これで、Google Cloud Text-to-Speech APIを使用するためのAPIキーが取得できました。</p>
+            </div>
+
+            <h2>よくある質問</h2>
+
+            <div class="faq">
+                <h3>Q: 料金はかかりますか？</h3>
+                <p><strong>A:</strong> Text-to-Speech APIには無料枠があります。月間100万文字まで無料で利用できるため、通常の使用では料金はかかりません。詳細は<a href="https://cloud.google.com/text-to-speech/pricing" target="_blank">料金ページ</a>をご確認ください。</p>
+            </div>
+
+            <div class="faq">
+                <h3>Q: APIキーを紛失した場合は？</h3>
+                <p><strong>A:</strong> Google Cloud Consoleの「認証情報」画面から、いつでも確認できます。また、必要に応じて新しいAPIキーを作成することも可能です。</p>
+            </div>
+
+            <div class="faq">
+                <h3>Q: セキュリティが心配です</h3>
+                <p><strong>A:</strong> このガイドで設定した制限により、APIキーはText-to-Speech機能のみに使用されます。さらに心配な場合は、定期的にAPIキーを再生成することをお勧めします。</p>
+            </div>
+
+            <h2>参考リンク</h2>
+            <ul>
+                <li><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                <li><a href="https://cloud.google.com/text-to-speech/docs" target="_blank">Text-to-Speech API ドキュメント</a></li>
+                <li><a href="https://cloud.google.com/text-to-speech/pricing" target="_blank">料金について</a></li>
+                <li><a href="https://cloud.google.com/support" target="_blank">Google Cloud サポート</a></li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            このガイドで不明な点がございましたら、Google Cloudのサポートページをご確認いただくか、専門家にご相談ください。
+        </div>
+    </div>
+</body>
+</html>
