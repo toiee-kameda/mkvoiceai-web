@@ -130,15 +130,17 @@ class TextToSpeechApp {
 
     updateCharacterCount() {
         const text = this.textInput.value;
-        const count = text.length;
-        this.charCount.textContent = count;
+        const charCount = text.length;
+        const byteLength = new Blob([text]).size;
+        
+        this.charCount.textContent = `${charCount}文字 (${byteLength}バイト)`;
         
         const counter = this.charCount.parentElement;
         counter.classList.remove('warning', 'danger');
         
-        if (count > 4500) {
+        if (charCount > 5000) {
             counter.classList.add('danger');
-        } else if (count > 4000) {
+        } else if (charCount > 4500) {
             counter.classList.add('warning');
         }
         
@@ -155,9 +157,11 @@ class TextToSpeechApp {
 
     checkGenerateButtonState() {
         const hasApiKey = this.apiKey || this.apiKeyInput.value.trim();
-        const hasText = this.textInput.value.trim().length > 0;
+        const text = this.textInput.value.trim();
+        const hasText = text.length > 0;
+        const isValidLength = text.length <= 5000;
         
-        this.generateBtn.disabled = !(hasApiKey && hasText);
+        this.generateBtn.disabled = !(hasApiKey && hasText && isValidLength);
     }
 
     showProgress(text = '処理中...', progress = 0) {
@@ -201,10 +205,28 @@ class TextToSpeechApp {
         this.showProgress('音声を生成中...', 10);
 
         try {
-            const audioData = await this.callTextToSpeechAPI(apiKey, text);
-            this.showProgress('音声ファイルを準備中...', 90);
+            const byteLength = new Blob([text]).size;
             
-            this.currentAudioData = audioData;
+            if (byteLength <= 5000) {
+                const audioData = await this.callTextToSpeechAPI(apiKey, text);
+                this.showProgress('音声ファイルを準備中...', 90);
+                this.currentAudioData = audioData;
+            } else {
+                const chunks = this.splitTextIntoChunks(text, 5000);
+                const audioChunks = [];
+                
+                for (let i = 0; i < chunks.length; i++) {
+                    const progress = 10 + (70 * (i + 1) / chunks.length);
+                    this.showProgress(`音声を生成中... (${i + 1}/${chunks.length})`, progress);
+                    
+                    const audioData = await this.callTextToSpeechAPI(apiKey, chunks[i]);
+                    audioChunks.push(audioData);
+                }
+                
+                this.showProgress('音声ファイルを結合中...', 85);
+                this.currentAudioData = await this.combineAudioChunks(audioChunks);
+            }
+            
             this.showProgress('完了', 100);
             
             setTimeout(() => {
@@ -285,6 +307,94 @@ class TextToSpeechApp {
         }
         
         return `エラーが発生しました: ${error.message}`;
+    }
+
+    splitTextIntoChunks(text, maxBytes) {
+        const chunks = [];
+        let currentChunk = '';
+        const sentences = text.split(/[。！？\n]/);
+        
+        for (let sentence of sentences) {
+            if (sentence.trim() === '') continue;
+            
+            sentence = sentence.trim() + (sentence.match(/[。！？]/) ? '' : '。');
+            const testChunk = currentChunk + (currentChunk ? '' : '') + sentence;
+            
+            if (new Blob([testChunk]).size <= maxBytes) {
+                currentChunk = testChunk;
+            } else {
+                if (currentChunk) {
+                    chunks.push(currentChunk);
+                    currentChunk = sentence;
+                    
+                    if (new Blob([currentChunk]).size > maxBytes) {
+                        const words = sentence.split('');
+                        let wordChunk = '';
+                        currentChunk = '';
+                        
+                        for (let word of words) {
+                            const testWordChunk = wordChunk + word;
+                            if (new Blob([testWordChunk]).size <= maxBytes) {
+                                wordChunk = testWordChunk;
+                            } else {
+                                if (wordChunk) chunks.push(wordChunk);
+                                wordChunk = word;
+                            }
+                        }
+                        currentChunk = wordChunk;
+                    }
+                } else {
+                    const words = sentence.split('');
+                    let wordChunk = '';
+                    for (let word of words) {
+                        const testWordChunk = wordChunk + word;
+                        if (new Blob([testWordChunk]).size <= maxBytes) {
+                            wordChunk = testWordChunk;
+                        } else {
+                            if (wordChunk) chunks.push(wordChunk);
+                            wordChunk = word;
+                        }
+                    }
+                    if (wordChunk) currentChunk = wordChunk;
+                }
+            }
+        }
+        
+        if (currentChunk) {
+            chunks.push(currentChunk);
+        }
+        
+        return chunks;
+    }
+
+    async combineAudioChunks(audioChunks) {
+        const audioArrays = audioChunks.map(chunk => {
+            const audioBytes = atob(chunk);
+            const audioArray = new Uint8Array(audioBytes.length);
+            for (let i = 0; i < audioBytes.length; i++) {
+                audioArray[i] = audioBytes.charCodeAt(i);
+            }
+            return audioArray;
+        });
+        
+        const totalLength = audioArrays.reduce((sum, arr) => sum + arr.length, 0);
+        const combined = new Uint8Array(totalLength);
+        
+        let offset = 0;
+        for (let array of audioArrays) {
+            combined.set(array, offset);
+            offset += array.length;
+        }
+        
+        // スタックオーバーフローを避けるために小さなチャンクに分割して処理
+        let binaryString = '';
+        const chunkSize = 8192; // 8KB毎に処理
+        for (let i = 0; i < combined.length; i += chunkSize) {
+            const chunk = combined.slice(i, i + chunkSize);
+            binaryString += String.fromCharCode.apply(null, chunk);
+        }
+        
+        return btoa(binaryString);
     }
 
     downloadAudio() {
