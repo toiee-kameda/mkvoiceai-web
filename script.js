@@ -1,0 +1,325 @@
+class TextToSpeechApp {
+    constructor() {
+        this.apiKey = '';
+        this.encryptionKey = 'tts-app-secure-key-2024';
+        this.initializeElements();
+        this.bindEvents();
+        this.loadSavedApiKey();
+        this.checkApiKeyStatus();
+    }
+
+    initializeElements() {
+        this.apiKeyInput = document.getElementById('api-key');
+        this.toggleApiKeyBtn = document.getElementById('toggle-api-key');
+        this.saveApiKeyBtn = document.getElementById('save-api-key');
+        this.apiKeyStatus = document.getElementById('api-key-status');
+        this.textInput = document.getElementById('text-input');
+        this.charCount = document.getElementById('char-count');
+        this.voiceSelect = document.getElementById('voice-select');
+        this.pitchRange = document.getElementById('pitch-range');
+        this.pitchValue = document.getElementById('pitch-value');
+        this.speedRange = document.getElementById('speed-range');
+        this.speedValue = document.getElementById('speed-value');
+        this.generateBtn = document.getElementById('generate-btn');
+        this.progressContainer = document.getElementById('progress-container');
+        this.progressFill = document.getElementById('progress-fill');
+        this.progressText = document.getElementById('progress-text');
+        this.downloadSection = document.getElementById('download-section');
+        this.downloadBtn = document.getElementById('download-btn');
+        this.errorMessage = document.getElementById('error-message');
+    }
+
+    bindEvents() {
+        this.toggleApiKeyBtn.addEventListener('click', () => this.toggleApiKeyVisibility());
+        this.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
+        this.textInput.addEventListener('input', () => this.updateCharacterCount());
+        this.pitchRange.addEventListener('input', () => this.updatePitchValue());
+        this.speedRange.addEventListener('input', () => this.updateSpeedValue());
+        this.generateBtn.addEventListener('click', () => this.generateSpeech());
+        this.downloadBtn.addEventListener('click', () => this.downloadAudio());
+        
+        this.apiKeyInput.addEventListener('input', () => this.checkApiKeyStatus());
+        this.textInput.addEventListener('input', () => this.checkGenerateButtonState());
+    }
+
+    toggleApiKeyVisibility() {
+        const input = this.apiKeyInput;
+        const button = this.toggleApiKeyBtn;
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = '非表示';
+        } else {
+            input.type = 'password';
+            button.textContent = '表示';
+        }
+    }
+
+    encryptData(data) {
+        return CryptoJS.AES.encrypt(data, this.encryptionKey).toString();
+    }
+
+    decryptData(encryptedData) {
+        try {
+            const bytes = CryptoJS.AES.decrypt(encryptedData, this.encryptionKey);
+            return bytes.toString(CryptoJS.enc.Utf8);
+        } catch (error) {
+            console.error('Decryption failed:', error);
+            return '';
+        }
+    }
+
+    saveApiKey() {
+        const apiKey = this.apiKeyInput.value.trim();
+        
+        if (!apiKey) {
+            this.showApiKeyStatus('APIキーを入力してください', 'error');
+            return;
+        }
+
+        if (!this.validateApiKey(apiKey)) {
+            this.showApiKeyStatus('無効なAPIキー形式です', 'error');
+            return;
+        }
+
+        try {
+            const encryptedKey = this.encryptData(apiKey);
+            localStorage.setItem('tts-api-key', encryptedKey);
+            this.apiKey = apiKey;
+            this.showApiKeyStatus('APIキーが保存されました', 'success');
+            this.checkGenerateButtonState();
+        } catch (error) {
+            this.showApiKeyStatus('APIキーの保存に失敗しました', 'error');
+        }
+    }
+
+    loadSavedApiKey() {
+        try {
+            const encryptedKey = localStorage.getItem('tts-api-key');
+            if (encryptedKey) {
+                const decryptedKey = this.decryptData(encryptedKey);
+                if (decryptedKey) {
+                    this.apiKey = decryptedKey;
+                    this.apiKeyInput.value = decryptedKey;
+                    this.showApiKeyStatus('保存されたAPIキーを読み込みました', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load API key:', error);
+        }
+    }
+
+    validateApiKey(apiKey) {
+        return apiKey.length > 10 && /^[A-Za-z0-9_-]+$/.test(apiKey);
+    }
+
+    showApiKeyStatus(message, type) {
+        this.apiKeyStatus.textContent = message;
+        this.apiKeyStatus.className = `status-message ${type}`;
+        
+        setTimeout(() => {
+            this.apiKeyStatus.textContent = '';
+            this.apiKeyStatus.className = 'status-message';
+        }, 5000);
+    }
+
+    checkApiKeyStatus() {
+        const hasApiKey = this.apiKey || this.apiKeyInput.value.trim();
+        this.checkGenerateButtonState();
+    }
+
+    updateCharacterCount() {
+        const text = this.textInput.value;
+        const count = text.length;
+        this.charCount.textContent = count;
+        
+        const counter = this.charCount.parentElement;
+        counter.classList.remove('warning', 'danger');
+        
+        if (count > 4500) {
+            counter.classList.add('danger');
+        } else if (count > 4000) {
+            counter.classList.add('warning');
+        }
+        
+        this.checkGenerateButtonState();
+    }
+
+    updatePitchValue() {
+        this.pitchValue.textContent = this.pitchRange.value;
+    }
+
+    updateSpeedValue() {
+        this.speedValue.textContent = this.speedRange.value;
+    }
+
+    checkGenerateButtonState() {
+        const hasApiKey = this.apiKey || this.apiKeyInput.value.trim();
+        const hasText = this.textInput.value.trim().length > 0;
+        
+        this.generateBtn.disabled = !(hasApiKey && hasText);
+    }
+
+    showProgress(text = '処理中...', progress = 0) {
+        this.progressContainer.style.display = 'block';
+        this.progressText.textContent = text;
+        this.progressFill.style.width = `${progress}%`;
+        this.downloadSection.style.display = 'none';
+        this.hideError();
+    }
+
+    hideProgress() {
+        this.progressContainer.style.display = 'none';
+    }
+
+    showDownload() {
+        this.downloadSection.style.display = 'block';
+        this.hideProgress();
+    }
+
+    showError(message) {
+        this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
+        this.hideProgress();
+        this.downloadSection.style.display = 'none';
+    }
+
+    hideError() {
+        this.errorMessage.style.display = 'none';
+    }
+
+    async generateSpeech() {
+        const apiKey = this.apiKey || this.apiKeyInput.value.trim();
+        const text = this.textInput.value.trim();
+        
+        if (!apiKey || !text) {
+            this.showError('APIキーとテキストを入力してください');
+            return;
+        }
+
+        this.generateBtn.disabled = true;
+        this.showProgress('音声を生成中...', 10);
+
+        try {
+            const audioData = await this.callTextToSpeechAPI(apiKey, text);
+            this.showProgress('音声ファイルを準備中...', 90);
+            
+            this.currentAudioData = audioData;
+            this.showProgress('完了', 100);
+            
+            setTimeout(() => {
+                this.showDownload();
+            }, 500);
+            
+        } catch (error) {
+            console.error('Speech generation failed:', error);
+            this.showError(this.getErrorMessage(error));
+        } finally {
+            this.generateBtn.disabled = false;
+        }
+    }
+
+    async callTextToSpeechAPI(apiKey, text) {
+        const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+        
+        const requestBody = {
+            input: { text: text },
+            voice: {
+                languageCode: 'ja-JP',
+                name: this.voiceSelect.value,
+                ssmlGender: this.getGenderFromVoice(this.voiceSelect.value)
+            },
+            audioConfig: {
+                audioEncoding: 'MP3',
+                pitch: parseFloat(this.pitchRange.value),
+                speakingRate: parseFloat(this.speedRange.value)
+            }
+        };
+
+        this.showProgress('APIに接続中...', 30);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        this.showProgress('音声データを受信中...', 60);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.audioContent) {
+            throw new Error('音声データが返されませんでした');
+        }
+
+        return data.audioContent;
+    }
+
+    getGenderFromVoice(voiceName) {
+        if (voiceName.includes('-A') || voiceName.includes('-C')) {
+            return 'FEMALE';
+        }
+        return 'MALE';
+    }
+
+    getErrorMessage(error) {
+        const message = error.message.toLowerCase();
+        
+        if (message.includes('401') || message.includes('unauthorized')) {
+            return 'APIキーが無効です。正しいAPIキーを入力してください。';
+        } else if (message.includes('403') || message.includes('forbidden')) {
+            return 'APIの使用が制限されています。Google Cloud Platformでプロジェクトとサービスが有効になっているか確認してください。';
+        } else if (message.includes('400') || message.includes('bad request')) {
+            return 'リクエストが無効です。テキストの内容を確認してください。';
+        } else if (message.includes('network') || message.includes('fetch')) {
+            return 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+        } else if (message.includes('quota')) {
+            return 'API使用量の上限に達しました。Google Cloud Platformで使用量を確認してください。';
+        }
+        
+        return `エラーが発生しました: ${error.message}`;
+    }
+
+    downloadAudio() {
+        if (!this.currentAudioData) {
+            this.showError('ダウンロードする音声データがありません');
+            return;
+        }
+
+        try {
+            const audioBytes = atob(this.currentAudioData);
+            const audioArray = new Uint8Array(audioBytes.length);
+            
+            for (let i = 0; i < audioBytes.length; i++) {
+                audioArray[i] = audioBytes.charCodeAt(i);
+            }
+
+            const blob = new Blob([audioArray], { type: 'audio/mp3' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `generated-speech-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            
+        } catch (error) {
+            console.error('Download failed:', error);
+            this.showError('ファイルのダウンロードに失敗しました');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    new TextToSpeechApp();
+});
