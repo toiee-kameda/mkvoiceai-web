@@ -3,7 +3,7 @@
     'use strict';
     
     // デプロイ時のタイムスタンプ（手動更新またはビルド時に自動設定）
-    const DEPLOY_VERSION = '20250619-1043';
+    const DEPLOY_VERSION = '20241219-01';
     
     // 現在の日時ベースのバージョン（開発時用）
     const CACHE_BUSTER = Date.now();
