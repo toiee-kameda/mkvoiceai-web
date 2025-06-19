@@ -34,9 +34,11 @@ Google Text-to-Speech APIを使用して、テキストを音声に変換し、�
 - **文字数制限**: 5,000文字（それ以上は分割して複数回実行）
 
 ### セキュリティ対策
-- APIキーのlocalStorage暗号化保存
+- **エンタープライズレベル暗号化**: Web Crypto API（AES-GCM 256bit）による暗号化
+- **デバイス固有セキュリティ**: デバイスフィンガープリントによる固有暗号化キー生成
+- **セッション管理**: 7日間無操作で自動削除、アクセス時に期間延長
+- **厳格な入力検証**: Google APIキー形式の正確な検証
 - HTTPS必須
-- 適切な入力値検証
 - APIキーの表示/非表示切り替え機能
 
 ## ターゲットユーザー
@@ -98,13 +100,15 @@ Google Text-to-Speech APIを使用して、テキストを音声に変換し、�
 ## デプロイメント
 
 ### 推奨プラットフォーム
-- **Netlify** (推奨)
+- **Cloudflare Pages** (現在使用中)
   - 静的サイトホスティング無料
   - 自動HTTPS
   - GitHubとの連携
-  - 簡単なデプロイプロセス
+  - 高性能CDN
+  - キャッシュバスティング対応済み
 
 ### 代替選択肢
+- Netlify
 - Vercel
 - GitHub Pages
 - Firebase Hosting
@@ -112,8 +116,13 @@ Google Text-to-Speech APIを使用して、テキストを音声に変換し、�
 ### デプロイフロー
 1. GitHubリポジトリ作成
 2. コードのpush
-3. Netlifyでリポジトリ連携
+3. Cloudflare Pagesでリポジトリ連携
 4. 自動デプロイ設定
+
+### キャッシュ管理
+- **キャッシュバスティング**: CSS/JSファイルにバージョン番号を自動付与
+- **バージョン更新**: `./update-version.sh` スクリプトで自動化
+- **メタタグ制御**: ブラウザキャッシュ無効化設定済み
 
 ## 制約事項
 
@@ -174,23 +183,47 @@ Google Text-to-Speech APIを使用して、テキストを音声に変換し、�
 - **Encryption**: Uses CryptoJS library for API key encryption in localStorage
 
 ### Key Files
-- `index.html`: Main HTML structure with Japanese UI
-- `script.js`: Main application logic as a single ES6 class
-- `styles.css`: Complete styling with responsive design
-- `crypto-js.min.js`: Third-party library for encryption
+- `index.html`: Main HTML structure with Japanese UI and cache busting
+- `script.js`: Main application logic with enhanced security features
+- `styles.css`: Modern glass-morphism design with responsive layout
+- `gcp_guide.html`: User guide for Google Cloud API key setup
+- `crypto-js.min.js`: Third-party library for encryption (legacy support)
+- `cache-buster.js`: Automatic cache invalidation system
+- `update-version.sh`: Version management automation script
 
 ### Core Components
-- **API Key Management**: Encrypted storage, validation, toggle visibility (`script.js:72-130`)
-- **Text Processing**: Character counting, validation, 5000 char limit (`script.js:131-146`)
-- **Voice Settings**: Voice selection, pitch/speed controls (`script.js:147-154`)
-- **Audio Generation**: Google TTS API calls, progress tracking (`script.js:191-263`)
-- **File Download**: Base64 to MP3 conversion and download (`script.js:290-321`)
+- **Security System**: Device fingerprinting, Web Crypto API encryption, session management
+- **API Key Management**: Enhanced validation, secure storage, auto-expiry (7 days)
+- **Text Processing**: Character counting, validation, 5000 char limit
+- **Voice Settings**: Voice selection with Wavenet priority, pitch/speed controls
+- **Audio Generation**: Google TTS API calls, progress tracking
+- **File Download**: Base64 to MP3 conversion and download
+- **Cache Management**: Automatic version control for assets
 
 ### Development Commands
-This is a static web application with no build process. Simply:
+This is a static web application with minimal build process:
+
+#### Local Development
 - Open `index.html` in a web browser for local development
 - Use a local HTTP server for HTTPS testing: `python -m http.server 8000`
 - No package.json, dependencies, or build commands required
+
+#### Deployment Preparation
+```bash
+# Update version numbers and cache busting parameters
+./update-version.sh
+
+# Commit and push changes
+git add .
+git commit -m "Version update for deployment"
+git push
+```
+
+#### Claude Code Automation
+When Claude Code needs to prepare for deployment, it should:
+1. Run `./update-version.sh` to update version numbers
+2. Commit and push the changes
+3. Verify the cache busting implementation is working
 
 ### Testing Strategy
 - Manual testing in web browsers (Chrome, Firefox, Safari)
@@ -199,9 +232,19 @@ This is a static web application with no build process. Simply:
 - Verify HTTPS functionality for production deployment
 
 ### Security Considerations
-- API keys are encrypted using CryptoJS AES before localStorage storage
+- **Enterprise-grade encryption**: Web Crypto API with AES-GCM 256-bit encryption
+- **Device-specific security**: Unique device fingerprinting prevents cross-device key usage
+- **Session management**: 7-day auto-expiry with activity-based renewal
+- **Strict validation**: Google API key format enforcement with visual feedback
+- **Cache security**: Version-controlled assets prevent cache poisoning
 - Client-side only - no server-side components
 - Requires HTTPS in production for secure API calls
-- Input validation for text length and API key format
+
+### Current Architecture Status
+- **Security Level**: ✅ Enterprise-grade (upgraded from basic)
+- **UI/UX**: ✅ Modern glass-morphism design
+- **Cache Management**: ✅ Automated version control
+- **Documentation**: ✅ Comprehensive user guides
+- **Deployment**: ✅ Cloudflare Pages with automated CI/CD
 
 このドキュメントは開発進行に応じて更新される予定です。
