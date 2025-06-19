@@ -12,183 +12,262 @@
         }
 
         body {
-            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             overflow: hidden;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 40px 30px;
+            padding: 50px 40px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
-            font-size: 28px;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header p {
-            font-size: 16px;
-            opacity: 0.9;
-            color: whitesmoke
+            font-size: 1.1rem;
+            opacity: 0.95;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         .content {
-            padding: 40px 30px;
+            padding: 50px 40px;
         }
 
         h2 {
-            color: #2c3e50;
-            font-size: 22px;
-            margin: 30px 0 15px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #667eea;
+            color: #334155;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 40px 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+            position: relative;
+        }
+        
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
         }
 
         h3 {
-            color: #34495e;
-            font-size: 18px;
-            margin: 25px 0 10px 0;
+            color: #475569;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
         }
 
         p {
-            margin-bottom: 15px;
-            color: #555;
+            margin-bottom: 16px;
+            color: #64748b;
+            line-height: 1.7;
         }
 
         ul, ol {
-            margin: 15px 0 15px 20px;
+            margin: 20px 0 20px 24px;
         }
 
         li {
-            margin-bottom: 8px;
-            color: #555;
+            margin-bottom: 10px;
+            color: #64748b;
+            line-height: 1.6;
         }
 
         .highlight {
-            background: #e8f4fd;
+            background: rgba(102, 126, 234, 0.05);
             border-left: 4px solid #667eea;
-            padding: 15px 20px;
-            margin: 20px 0;
-            border-radius: 0 8px 8px 0;
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-radius: 0 12px 12px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
         }
 
         .highlight.tip {
-            background: #f0f9ff;
+            background: rgba(59, 130, 246, 0.05);
             border-left-color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.1);
         }
 
         .highlight.warning {
-            background: #fef3cd;
+            background: rgba(251, 191, 36, 0.05);
             border-left-color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.1);
         }
 
         .highlight.danger {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.05);
             border-left-color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.1);
         }
 
         .highlight strong {
-            color: #2c3e50;
+            color: #334155;
+            font-weight: 600;
         }
 
         code {
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: rgba(148, 163, 184, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
             font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 14px;
-            color: #e74c3c;
+            font-size: 0.9rem;
+            color: #667eea;
+            border: 1px solid rgba(148, 163, 184, 0.2);
         }
 
         a {
             color: #667eea;
             text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         a:hover {
+            color: #764ba2;
             text-decoration: underline;
         }
 
         .step {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
+            background: rgba(248, 250, 252, 0.6);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
             border-left: 4px solid #667eea;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            backdrop-filter: blur(10px);
+            position: relative;
         }
 
         .step-number {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            margin-right: 15px;
-            font-size: 14px;
+            font-weight: 700;
+            margin-right: 20px;
+            font-size: 1rem;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
         }
 
         .faq {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
+            background: rgba(248, 250, 252, 0.6);
+            border-radius: 16px;
+            padding: 24px;
             margin: 30px 0;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            backdrop-filter: blur(10px);
         }
 
         .faq h3 {
             color: #667eea;
             margin-top: 0;
+            font-weight: 600;
         }
 
         .footer {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px 30px;
+            background: rgba(44, 62, 80, 0.9);
+            color: rgba(236, 240, 241, 0.95);
+            padding: 30px 40px;
             text-align: center;
             font-style: italic;
+            backdrop-filter: blur(20px);
         }
 
         img {
             max-width: 100%;
             height: auto;
-            border-radius: 8px;
-            margin-top: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(226, 232, 240, 0.3);
         }
-
 
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
             }
             
-            .header, .content {
+            .header {
+                padding: 40px 24px;
+            }
+            
+            .content {
+                padding: 40px 24px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            .step {
+                padding: 24px;
+            }
+            
+            .step-number {
+                width: 36px;
+                height: 36px;
+                margin-right: 16px;
+            }
+            
+            .footer {
+                padding: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .content {
                 padding: 30px 20px;
             }
             
             .header h1 {
-                font-size: 24px;
+                font-size: 1.8rem;
             }
             
-            h2 {
-                font-size: 20px;
+            .step {
+                padding: 20px;
+                margin: 20px 0;
             }
         }
     </style>
@@ -196,7 +275,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Google Cloud Text-to-Speech</h1>
+            <h1>🔑 Google Cloud Text-to-Speech</h1>
             <p>APIキー取得ガイド（非エンジニア向け）</p>
         </div>
         
@@ -247,7 +326,7 @@
             </div>
 
             <div class="step">
-                <h2><span class="step-number">4</span>認証情報（APIキー）を作成</h2>
+                <h2><span class="step-number">3</span>認証情報（APIキー）を作成</h2>
                 <p>APIキーは、あなたがこのサービスを使う権限があることを証明する「鍵」のようなものです。</p>
                 <ol>
                     <li>左側のメニューから <strong>「APIとサービス」</strong> → <strong>「認証情報」</strong> をクリック
@@ -265,7 +344,7 @@
             </div>
 
             <div class="step">
-                <h2><span class="step-number">5</span>APIキーを制限して安全性を高める</h2>
+                <h2><span class="step-number">4</span>APIキーを制限して安全性を高める</h2>
                 <p>作成したAPIキーは、そのままだとGoogle Cloudの全ての機能にアクセスできてしまいます。安全のため、Text-to-Speechのみに制限しましょう。</p>
                 <ol>
                     <li>作成されたAPIキーの画面で <strong>「キーを制限」</strong> をクリック
@@ -289,7 +368,7 @@
             </div>
 
             <div class="step">
-                <h2><span class="step-number">6</span>APIキーをコピー</h2>
+                <h2><span class="step-number">5</span>APIキーをコピー</h2>
                 <ol>
                     <li>認証情報の一覧画面で、作成したAPIキーの右側にある <strong>コピーアイコン</strong> をクリック
                         <img src="images/14.png" alt="">
@@ -321,6 +400,11 @@
             <div class="faq">
                 <h3>Q: セキュリティが心配です</h3>
                 <p><strong>A:</strong> このガイドで設定した制限により、APIキーはText-to-Speech機能のみに使用されます。さらに心配な場合は、定期的にAPIキーを再生成することをお勧めします。</p>
+            </div>
+
+            <div class="faq">
+                <h3>Q: 入力したAPIキーはどこの保存されますか？</h3>
+                <p><strong>A:</strong> ブラウザ(システム)に入力されたAPIキーは、デバイス固有のIDを使って暗号化、複合化されます。ブラウザが変わったり、キャッシュがクリアされたり、一定期間が経つと、再度入力が必要になります。</p>
             </div>
 
             <h2>参考リンク</h2>
