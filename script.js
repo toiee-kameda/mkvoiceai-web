@@ -4,13 +4,16 @@ class TextToSpeechApp {
         this.deviceFingerprint = null;
         this.cryptoKey = null;
         this.sessionTimeout = 7 * 24 * 60 * 60 * 1000; // 7日間
+        this.textNormalizationEnabled = true; // テキスト正規化のON/OFF
         this.initializeSecurity()
             .then(() => {
                 this.initializeElements();
                 this.bindEvents();
                 this.enhanceApiKeyInputSecurity();
+                this.initializeTextNormalization();
                 this.loadSavedApiKey();
                 this.loadVoiceSettings();
+                this.loadNormalizationSettings();
                 this.checkApiKeyStatus();
                 this.startSessionMonitoring();
             })
@@ -44,6 +47,10 @@ class TextToSpeechApp {
         this.previewBtn = document.getElementById('preview-btn');
         this.previewSection = document.getElementById('preview-section');
         this.previewAudio = document.getElementById('preview-audio');
+        this.textNormalizationCheckbox = document.getElementById('text-normalization');
+        this.previewNormalizedBtn = document.getElementById('preview-normalized');
+        this.normalizedPreview = document.getElementById('normalized-preview');
+        this.normalizedText = document.getElementById('normalized-text');
     }
 
     bindEvents() {
@@ -65,6 +72,8 @@ class TextToSpeechApp {
         this.voiceSelect.addEventListener('change', () => this.saveVoiceSettings());
         this.apiKeyInput.addEventListener('input', () => this.checkApiKeyStatus());
         this.textInput.addEventListener('input', () => this.checkGenerateButtonState());
+        this.textNormalizationCheckbox.addEventListener('change', () => this.toggleTextNormalization());
+        this.previewNormalizedBtn.addEventListener('click', () => this.showNormalizedPreview());
     }
 
     toggleApiKeyVisibility() {
@@ -429,6 +438,239 @@ class TextToSpeechApp {
         }
     }
 
+    // テキスト正規化・音声読み上げ最適化
+    initializeTextNormalization() {
+        // 記号・特殊文字の音声変換辞書
+        this.symbolDictionary = {
+            // 基本記号
+            '&': 'アンド',
+            '@': 'アットマーク',
+            '#': 'ハッシュ',
+            '$': 'ドル',
+            '%': 'パーセント',
+            '^': 'ハット',
+            '*': 'アスタリスク',
+            '+': 'プラス',
+            '-': 'マイナス',
+            '=': 'イコール',
+            '|': 'パイプ',
+            '\\': 'バックスラッシュ',
+            '/': 'スラッシュ',
+            '~': 'チルダ',
+            '`': 'バッククォート',
+            
+            // 括弧類
+            '(': '、',
+            ')': '、',
+            '[': '、',
+            ']': '、',
+            '{': '、',
+            '}': '、',
+            '<': '、',
+            '>': '、',
+            
+            // 引用符
+            '"': '、',
+            "'": '、',
+            '`': '、',
+            '"': '、',
+            '"': '、',
+            '\u2018': '、', // '
+            '\u2019': '、', // '
+            
+            // 句読点・記号
+            '…': '。',
+            '・': '、',
+            '：': '、',
+            '；': '、',
+            '？': '。',
+            '！': '。',
+            
+            // 数学記号
+            '±': 'プラスマイナス',
+            '×': 'かける',
+            '÷': 'わる',
+            '≠': 'ノットイコール',
+            '≤': '以下',
+            '≥': '以上',
+            '∞': '無限大',
+            
+            // 通貨記号
+            '¥': '円',
+            '€': 'ユーロ',
+            '£': 'ポンド',
+            '₩': 'ウォン',
+            
+            // 特殊文字
+            '®': 'レジスタードマーク',
+            '©': 'コピーライト',
+            '™': 'トレードマーク',
+            '°': '度',
+            '№': 'ナンバー',
+            '§': 'セクション',
+            
+            // 矢印
+            '→': '右向き矢印',
+            '←': '左向き矢印',
+            '↑': '上向き矢印',
+            '↓': '下向き矢印',
+            '⇒': '右向き太矢印',
+            '⇐': '左向き太矢印',
+            
+            // その他
+            '★': 'ほし',
+            '☆': 'ほし',
+            '♪': 'おんぷ',
+            '♬': 'おんぷ',
+            '※': 'こめじるし',
+            '〒': 'ゆうびんばんごう',
+            '〃': 'どう',
+            '々': 'どう'
+        };
+
+        // URL・メール・電話番号の正規表現
+        this.patterns = {
+            url: /https?:\/\/[^\s]+/gi,
+            email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi,
+            phone: /(\d{2,4}[-\s]?\d{2,4}[-\s]?\d{3,4})/g,
+            hashtag: /#[^\s#]+/gi,
+            mention: /@[^\s@]+/gi,
+            markdown: /\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`|~~([^~]+)~~/g,
+            htmlTags: /<[^>]+>/g,
+            multipleSpaces: /\s+/g,
+            multipleNewlines: /\n{3,}/g,
+            leadingTrailingWhitespace: /^\s+|\s+$/g
+        };
+    }
+
+    // テキストを音声読み上げ用に正規化
+    normalizeTextForSpeech(text) {
+        if (!this.textNormalizationEnabled) {
+            return text;
+        }
+
+        let normalizedText = text;
+
+        // 1. HTMLタグを除去
+        normalizedText = normalizedText.replace(this.patterns.htmlTags, '');
+
+        // 2. Markdownマークアップを除去
+        normalizedText = normalizedText.replace(this.patterns.markdown, '$1$2$3$4');
+
+        // 3. URL を「リンク」に変換
+        normalizedText = normalizedText.replace(this.patterns.url, 'リンク');
+
+        // 4. メールアドレスを「メールアドレス」に変換
+        normalizedText = normalizedText.replace(this.patterns.email, 'メールアドレス');
+
+        // 5. 電話番号を読みやすく変換
+        normalizedText = normalizedText.replace(this.patterns.phone, (match) => {
+            return match.replace(/[-\s]/g, 'の');
+        });
+
+        // 6. ハッシュタグとメンションを変換
+        normalizedText = normalizedText.replace(this.patterns.hashtag, (match) => {
+            return 'ハッシュタグ' + match.substring(1);
+        });
+        normalizedText = normalizedText.replace(this.patterns.mention, (match) => {
+            return 'アットマーク' + match.substring(1);
+        });
+
+        // 7. 記号・特殊文字を変換
+        for (const [symbol, reading] of Object.entries(this.symbolDictionary)) {
+            const regex = new RegExp(this.escapeRegExp(symbol), 'g');
+            normalizedText = normalizedText.replace(regex, reading);
+        }
+
+        // 8. 連続する改行を整理
+        normalizedText = normalizedText.replace(this.patterns.multipleNewlines, '\n\n');
+
+        // 9. 連続するスペースを整理
+        normalizedText = normalizedText.replace(this.patterns.multipleSpaces, ' ');
+
+        // 10. 先頭・末尾の空白を除去
+        normalizedText = normalizedText.replace(this.patterns.leadingTrailingWhitespace, '');
+
+        // 11. 改行を句点に変換（音声では自然な区切りとして）
+        normalizedText = normalizedText.replace(/\n/g, '。');
+
+        // 12. 連続する句点を整理
+        normalizedText = normalizedText.replace(/。{2,}/g, '。');
+
+        return normalizedText;
+    }
+
+    // 正規表現用の特殊文字をエスケープ
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // テキスト正規化の設定を保存
+    saveNormalizationSettings() {
+        try {
+            localStorage.setItem('tts-normalization-enabled', this.textNormalizationEnabled.toString());
+        } catch (error) {
+            console.error('Failed to save normalization settings:', error);
+        }
+    }
+
+    // テキスト正規化の設定を読み込み
+    loadNormalizationSettings() {
+        try {
+            const saved = localStorage.getItem('tts-normalization-enabled');
+            if (saved !== null) {
+                this.textNormalizationEnabled = saved === 'true';
+            }
+            // UIに反映
+            if (this.textNormalizationCheckbox) {
+                this.textNormalizationCheckbox.checked = this.textNormalizationEnabled;
+            }
+        } catch (error) {
+            console.error('Failed to load normalization settings:', error);
+        }
+    }
+
+    // テキスト正規化のON/OFF切り替え
+    toggleTextNormalization() {
+        this.textNormalizationEnabled = this.textNormalizationCheckbox.checked;
+        this.saveNormalizationSettings();
+        
+        // プレビューが表示されている場合は自動更新
+        if (this.normalizedPreview.style.display !== 'none') {
+            this.showNormalizedPreview();
+        }
+    }
+
+    // 正規化されたテキストのプレビューを表示
+    showNormalizedPreview() {
+        const originalText = this.textInput.value.trim();
+        
+        if (!originalText) {
+            alert('プレビューするテキストを入力してください');
+            return;
+        }
+
+        const normalizedText = this.normalizeTextForSpeech(originalText);
+        
+        this.normalizedText.textContent = normalizedText;
+        this.normalizedPreview.style.display = 'block';
+        
+        // アニメーション効果
+        this.normalizedPreview.style.opacity = '0';
+        this.normalizedPreview.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            this.normalizedPreview.style.transition = 'all 0.3s ease';
+            this.normalizedPreview.style.opacity = '1';
+            this.normalizedPreview.style.transform = 'translateY(0)';
+        }, 10);
+        
+        // 変化があるかどうかを確認
+        if (originalText === normalizedText) {
+            this.normalizedText.innerHTML = '<em style="color: #64748b;">変換対象の記号・特殊文字は含まれていません</em>';
+        }
+    }
+
     updateCharacterCount() {
         const text = this.textInput.value;
         const charCount = text.length;
@@ -496,13 +738,16 @@ class TextToSpeechApp {
 
     async generateSpeech() {
         const apiKey = this.apiKey || this.apiKeyInput.value.trim();
-        const text = this.textInput.value.trim();
+        const originalText = this.textInput.value.trim();
         
-        if (!apiKey || !text) {
+        if (!apiKey || !originalText) {
             this.showError('APIキーとテキストを入力してください');
             return;
         }
 
+        // テキスト正規化を適用
+        const text = this.normalizeTextForSpeech(originalText);
+        
         this.generateBtn.disabled = true;
         this.showProgress('音声を生成中...', 10);
 
@@ -733,15 +978,16 @@ class TextToSpeechApp {
 
     async generatePreview() {
         const apiKey = this.apiKey || this.apiKeyInput.value.trim();
-        const fullText = this.textInput.value.trim();
+        const originalText = this.textInput.value.trim();
         
-        if (!apiKey || !fullText) {
+        if (!apiKey || !originalText) {
             this.showError('APIキーとテキストを入力してください');
             return;
         }
 
-        // 最初の60文字を取得
-        const previewText = fullText.substring(0, 60);
+        // テキスト正規化を適用してから最初の60文字を取得
+        const normalizedText = this.normalizeTextForSpeech(originalText);
+        const previewText = normalizedText.substring(0, 60);
         
         this.previewBtn.disabled = true;
         this.showProgress('プレビュー音声を生成中...', 10);
